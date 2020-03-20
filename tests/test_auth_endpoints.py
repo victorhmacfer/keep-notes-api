@@ -1,15 +1,15 @@
 import pytest
 
-from flask import Flask
-
 from flask_sqlalchemy import SQLAlchemy
 
-from app import create_app, db
+from app import create_app
+
+from models.user import User
 
 
 @pytest.fixture
 def app():
-    app = create_app()
+    app = create_app(testing=True)
     return app
 
 
@@ -17,8 +17,10 @@ def app():
 def client(app):
     yield app.test_client()
 
-    with app.app_context():
-        db.drop_all()
+    import os
+    if os.path.exists('/tmp/test.db'):
+        os.remove('/tmp/test.db')    
+
 
 
 def test_register_endpoint(client):
@@ -72,7 +74,6 @@ def login_with(client, username, password):
 
 
 def test_login_endpoint(client):
-
     # login attempt with nonexistent USERNAME
     response = login_with(client, 'newuser', 'abc123')
     assert 400 == response.status_code
@@ -90,7 +91,5 @@ def test_login_endpoint(client):
     response = login_with(client, 'johndoe', 'abc123')
     assert b'access_token' in response.data
     assert 200 == response.status_code
-
-
 
 

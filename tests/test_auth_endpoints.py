@@ -53,7 +53,7 @@ def test_register_endpoint(client):
     assert 400 == response.status_code
     assert bad_form_message in response.data
 
-    # register request with form missing email key-value pair
+    # form missing email key-value pair
     response = client.post('/api/auth/register', data=dict(
         username='guido', password='abc123'))
     assert 400 == response.status_code

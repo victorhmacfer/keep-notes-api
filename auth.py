@@ -16,18 +16,18 @@ def register():
         email = request.form['email']
     except KeyError:
         return {'message': 'Form filled incorrectly: Missing field.'}, 400
-    else:
-        username_is_taken = User.find_by_username(username) is not None
-        if username_is_taken:
-            return {'message': 'This username is already in use.'}, 400
 
-        email_is_taken = User.find_by_email(email) is not None
-        if email_is_taken:
-            return {'message': 'This email is already in use.'}, 400
+    username_is_taken = User.find_by_username(username) is not None
+    if username_is_taken:
+        return {'message': 'This username is already in use.'}, 400
 
-        new_user = User(username=username, password=password, email=email)
-        db.session.add(new_user)
-        db.session.commit()
+    email_is_taken = User.find_by_email(email) is not None
+    if email_is_taken:
+        return {'message': 'This email is already in use.'}, 400
+
+    new_user = User(username=username, password=password, email=email)
+    db.session.add(new_user)
+    db.session.commit()
 
     return {'message': 'User registered successfully.'}, 200
 

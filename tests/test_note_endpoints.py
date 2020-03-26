@@ -53,13 +53,48 @@ def test_create_note(client_with_logged_in_user):
     assert 201 == response.status_code
     assert b'''note:{"id":"1","title":"","text":"","pinned":"false","archived":"false","user_id":"1","color_name":"white","images":[{"url":"www.abc123.com"},{"url":"www.blabla.com"}],"labels":["my-label"]}''' in response.data
 
-    #
+    # creating another note for the same user
+    note_json_string = '''{"user_id":"1","title":"second note","text":"bla","pinned":"true","archived":"false","color_name":"red","images":[{"url":"www.abc123.com"}],"labels":[]}'''
+    response = client_with_logged_in_user.post(
+        'api/notes',
+        json=note_json_string
+    )
+    assert 201 == response.status_code
+    assert b'''note:{"id":"2","title":"second note","text":"bla","pinned":"true","archived":"false","user_id":"1","color_name":"red","images":[{"url":"www.abc123.com"}],"labels":[]}''' in response.data
+
+
+
+
+
+def test_update_note(client_with_logged_in_user):
+    # note json with existing id.. change title and text
+    note_json_string = '''{"user_id":"1","title":"initial title","text":"first version","pinned":"false","archived":"false","color_name":"white","images":[{"url":"www.abc123.com"},{"url":"www.blabla.com"}],"labels":["my-label"]}'''
+    response = client_with_logged_in_user.post(
+        'api/notes',
+        json=note_json_string
+    )
+    assert 201 == response.status_code
+    assert b'''note:{"id":"1","title":"initial title","text":"first version","pinned":"false","archived":"false","user_id":"1","color_name":"white","images":[{"url":"www.abc123.com"},{"url":"www.blabla.com"}],"labels":["my-label"]}''' in response.data
+
+    note_json_string = '''{"id":"1","title":"MODIFIED","text":"SECOND version"}'''
+    response = client_with_logged_in_user.patch(
+        'api/notes',
+        json=note_json_string
+    )
+    assert 200 == response.status_code
+    assert b'''note:{"id":"1","title":"MODIFIED","text":"SECOND version","pinned":"false","archived":"false","user_id":"1","color_name":"white","images":[{"url":"www.abc123.com"},{"url":"www.blabla.com"}],"labels":["my-label"]}''' in response.data
+
+
+    # note json with existing id.. remove one of the images
+
+    # note json with existing id.. include another label
+
+    # note json with NON EXISTING id.. return "note id not found"  400
 
 
 
 # FIXME: repeats code for creating note, therefore coupled to it.
 def test_get_all_notes(client_with_logged_in_user):
-    # get all notes
     note_json_string = '''{"user_id":"1","title":"","text":"","pinned":"false","archived":"false","color_name":"white","images":[{"url":"www.abc123.com"},{"url":"www.blabla.com"}],"labels":["my-label"]}'''
     response = client_with_logged_in_user.post(
         'api/notes',

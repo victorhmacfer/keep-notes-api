@@ -26,35 +26,6 @@ class Note(db.Model):
     labels = db.relationship('Label', secondary=labels, lazy='subquery',
         backref='notes')
 
-    # FIXME: handle keyerrors and bad values for keys
-    @classmethod
-    def from_json_dict(cls, json_dict):
-        user_id = int(json_dict['user_id'])
-        title = json_dict['title']
-        text = json_dict['text']
-        pinned = True if json_dict['pinned'] == 'true' else False
-        archived = True if json_dict['archived'] == 'true' else False
-        color_name = json_dict['color_name']
-
-        the_note = cls(
-            user_id=user_id, 
-            title=title,
-            text=text,
-            pinned=pinned,
-            archived=archived,
-            color_name=color_name)
-
-        for i in json_dict['images']:
-            img = Image(url=i['url'], note_id=the_note.id)
-            the_note.images.append(img)
-
-
-        for label_text in json_dict['labels']:        
-            the_label = Label(text=label_text)
-            the_note.labels.append(the_label)
-        
-        return the_note
-                  
 
     def to_json_dict(self):
         the_dict = OrderedDict()
@@ -72,7 +43,6 @@ class Note(db.Model):
         the_dict['labels'] = [lab.text for lab in self.labels]
 
         return the_dict
-
 
 
 

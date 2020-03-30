@@ -47,15 +47,21 @@ def login():
         username = request.form['username']
         password = request.form['password']
     except KeyError:
-        return {'message': 'Form filled incorrectly: Missing field.'}, 400
+        resp_dict = {'error': 'Login Failed.', 
+                'description': 'Form filled incorrectly. Missing field.'}
+        return make_json_response(resp_dict, 400)
 
     user = User.find_by_username(username)
     username_not_registered = user is None
     if username_not_registered:
-        return {'message': 'No user registered with this username.'}, 400
+        resp_dict = {'error': 'Login Failed.', 
+            'description': f'User with username \'{username}\' could not be found.'}
+        return make_json_response(resp_dict, 400)
 
     if user.verify_password(password) == False:
-        return {'message': 'Wrong password.'}, 400
+        resp_dict = {'error': 'Login Failed.', 
+            'description': 'Wrong password.'}
+        return make_json_response(resp_dict, 400)
 
     access_token = create_access_token(identity=username)
     return jsonify(access_token=access_token), 200

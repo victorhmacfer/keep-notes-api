@@ -34,7 +34,6 @@ def mod_client(mod_app):
         os.remove('/tmp/test.db')
 
 
-
 # also a test for successful registration
 @pytest.fixture(scope='module')
 def client_with_regd_user_johndoe_abc123(mod_client):
@@ -49,7 +48,6 @@ def client_with_regd_user_johndoe_abc123(mod_client):
 
     assert EXPECTED_RESPONSE in response.data
     return mod_client
-
 
 
 def register_with(fn_client, username, password, email):
@@ -118,5 +116,3 @@ def test_form_missing_email_key_value_pair(fn_client):
         username='guido', password='abc123'))
     assert 400 == response.status_code
     assert BAD_FORM_MESSAGE in response.data
-
-

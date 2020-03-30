@@ -28,8 +28,31 @@ def login_with(client, username, password):
         username=username, password=password))
 
 
+def test_login_with_missing_username_key_value_pair(client):
+    BAD_FORM_MESSAGE = b'''{
+    "error": "Login Failed.",
+    "description": "Form filled incorrectly. Missing field."\n}'''
+
+    response = client.post('/api/auth/login', data=dict(password='abc123'))
+    assert 400 == response.status_code
+    assert BAD_FORM_MESSAGE in response.data
+
+
+def test_login_with_missing_password_key_value_pair(client):
+    BAD_FORM_MESSAGE = b'''{
+    "error": "Login Failed.",
+    "description": "Form filled incorrectly. Missing field."\n}'''
+
+    response = client.post('/api/auth/login', data=dict(username='victor'))
+    assert 400 == response.status_code
+    assert BAD_FORM_MESSAGE in response.data
+
+
 def test_login_with_nonexistent_username(client):
-    FAIL_MESSAGE = b'{"message":"No user registered with this username."}'
+    FAIL_MESSAGE = b'''{
+    "error": "Login Failed.",
+    "description": "User with username 'newuser' could not be found."\n}'''
+
     response = login_with(client, 'newuser', 'abc123')
     assert 400 == response.status_code
     assert FAIL_MESSAGE in response.data
@@ -37,17 +60,21 @@ def test_login_with_nonexistent_username(client):
 
 def test_login_with_wrong_password(client):
     response = register_with(client, 'johndoe', 'abc123', 'johndoe@gmail.com')
-    assert 200 == response.status_code
-    assert b'{"message":"User registered successfully."}' in response.data
+    assert 201 == response.status_code
+
+    FAIL_MESSAGE = b'''{
+    "error": "Login Failed.",
+    "description": "Wrong password."\n}'''
+
     response = login_with(client, 'johndoe', 'wrongpwd123')
     assert 400 == response.status_code
-    assert b'{"message":"Wrong password."}' in response.data
+    assert FAIL_MESSAGE in response.data
 
 
 def test_successful_login_returns_JWT(client):
     response = register_with(client, 'johndoe', 'abc123', 'johndoe@gmail.com')
-    assert 200 == response.status_code
-    assert b'{"message":"User registered successfully."}' in response.data
+    assert 201 == response.status_code
+
     response = login_with(client, 'johndoe', 'abc123')
     assert b'access_token' in response.data
     assert 200 == response.status_code

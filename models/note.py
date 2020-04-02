@@ -40,10 +40,43 @@ class Note(db.Model):
         image_dicts_list = [i.to_dict() for i in self.images]
         the_dict['images'] = image_dicts_list
 
-        the_dict['labels'] = [lab.text for lab in self.labels]
+        label_dicts_list = [lab.to_dict() for lab in self.labels]
+        the_dict['labels'] = label_dicts_list
 
         return the_dict
 
+
+
+def create_note_from_json_dict(json_dict):
+    user_id = int(json_dict['user_id'])
+    title = json_dict['title']
+    text = json_dict['text']
+    pinned = True if json_dict['pinned'] == 'true' else False
+    archived = True if json_dict['archived'] == 'true' else False
+    color_name = json_dict['color_name']
+
+    the_note = Note(
+        user_id=user_id,
+        title=title,
+        text=text,
+        pinned=pinned,
+        archived=archived,
+        color_name=color_name)
+
+    for i in json_dict['images']:
+        img = Image(url=i['url'], note_id=the_note.id)
+        the_note.images.append(img)
+
+    for label in json_dict['labels']:
+        label_text = label['text']
+        label_in_db = Label.find_by_text(label_text)
+        if label_in_db is not None:
+            the_label = label_in_db
+        else:
+            the_label = Label(text=label_text)
+        the_note.labels.append(the_label)
+
+    return the_note
 
 
 
@@ -53,6 +86,9 @@ class Label(db.Model):
     @classmethod
     def find_by_text(cls, txt):
         return cls.query.filter_by(text=txt).first()
+
+    def to_dict(self):
+        return {'text': self.text}
 
 
 

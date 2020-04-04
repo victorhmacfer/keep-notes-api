@@ -159,33 +159,6 @@ def delete_test_db():
 
 
 
-# {"user_id":"1","title":"","text":"","pinned":"False","archived":"False","color_name":"white","images":[{"url":"www.abc123.com"},{"url":"www.blabla.com"}],"labels":["my-label"]}
-
-
-
-# def test_create_note(client_with_logged_in_user):
-#     # create note for user responds json of note & 201 status
-#     note_json_string = '''{"user_id":"1","title":"","text":"","pinned":"false","archived":"false","color_name":"white","images":[{"url":"www.abc123.com"},{"url":"www.blabla.com"}],"labels":["my-label"]}'''
-#     response = client_with_logged_in_user.post(
-#         'api/u/johndoe/notes',
-#         json=note_json_string
-#     )
-#     assert 201 == response.status_code
-#     assert b'''note:{"id":"1","title":"","text":"","pinned":"false","archived":"false","user_id":"1","color_name":"white","images":[{"url":"www.abc123.com"},{"url":"www.blabla.com"}],"labels":["my-label"]}''' in response.data
-
-#     # creating another note for the same user
-#     note_json_string = '''{"user_id":"1","title":"second note","text":"bla","pinned":"true","archived":"false","color_name":"red","images":[{"url":"www.abc123.com"}],"labels":[]}'''
-#     response = client_with_logged_in_user.post(
-#         'api/notes',
-#         json=note_json_string
-#     )
-#     assert 201 == response.status_code
-#     assert b'''note:{"id":"2","title":"second note","text":"bla","pinned":"true","archived":"false","user_id":"1","color_name":"red","images":[{"url":"www.abc123.com"}],"labels":[]}''' in response.data
-
-
-
-
-
 @pytest.mark.skip(reason="For now I'm disabling jwt required.")
 def test_get_all_user_notes_requires_jwt(client_with_logged_in_user):
     # dont use token on request... expecting a 401 error
@@ -195,7 +168,6 @@ def test_get_all_user_notes_requires_jwt(client_with_logged_in_user):
     assert b'''{
     "error": "Access Denied.",
     "description": "JWT access token not found in request."\n}''' in response.data
-
 
 
 
@@ -298,7 +270,6 @@ def test_create_note_for_user(client_with_regd_user):
 
 
 
-
 def test_create_note_for_nonexistent_user(client_with_regd_user):
     NOTE_JSON_STR = '''{
     "title": "my first note",
@@ -321,7 +292,6 @@ def test_create_note_for_nonexistent_user(client_with_regd_user):
     "description": "User with username 'notregd' could not be found."\n}'''
 
     assert EXPECTED_BODY in r.data
-
 
 
 def test_create_note_with_bad_json_in_request(client_with_regd_user):
@@ -374,14 +344,6 @@ def test_create_note_with_bad_json_in_request(client_with_regd_user):
 
 
 
-
-
-
-
-
-
-
-
 # def test_update_note(client_with_logged_in_user):
 #     # note json with existing id.. change title and text
 #     note_json_string = '''{"user_id":"1","title":"initial title","text":"first version","pinned":"false","archived":"false","color_name":"white","images":[{"url":"www.abc123.com"},{"url":"www.blabla.com"}],"labels":["my-label"]}'''
@@ -406,24 +368,3 @@ def test_create_note_with_bad_json_in_request(client_with_regd_user):
 #     # note json with existing id.. include another label
 
 #     # note json with NON EXISTING id.. return "note id not found"  400
-
-
-
-
-# # FIXME: repeats code for creating note, therefore coupled to it.
-# def test_get_all_notes(client_with_logged_in_user):
-#     note_json_string = '''{"user_id":"1","title":"","text":"","pinned":"false","archived":"false","color_name":"white","images":[{"url":"www.abc123.com"},{"url":"www.blabla.com"}],"labels":["my-label"]}'''
-#     response = client_with_logged_in_user.post(
-#         'api/notes',
-#         json=note_json_string
-#     )
-#     note_json_string = '''{"user_id":"1","title":"second note","text":"this is a note","pinned":"true","archived":"false","color_name":"red","images":[],"labels":["my-label"]}'''
-#     response = client_with_logged_in_user.post(
-#         'api/notes',
-#         json=note_json_string
-#     )
-#     response = client_with_logged_in_user.get('api/notes')
-#     assert 200 == response.status_code
-#     assert b'''{"id":"1","title":"","text":"","pinned":"false","archived":"false","user_id":"1","color_name":"white","images":[{"url":"www.abc123.com"},{"url":"www.blabla.com"}],"labels":["my-label"]}''' in response.data
-#     assert b'''{"id":"2","title":"second note","text":"this is a note","pinned":"true","archived":"false","user_id":"1","color_name":"red","images":[],"labels":["my-label"]}''' in response.data
-

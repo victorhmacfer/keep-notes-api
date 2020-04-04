@@ -186,7 +186,7 @@ def create_app(testing=False):
         if the_user is None:
             rd = {
                 'error': 'Note creation has failed.', 
-                'description': "User with username 'notregd' could not be found."
+                'description': f"User with username '{username}' could not be found."
             }
             return make_json_response(rd, 404)
 
@@ -204,20 +204,14 @@ def create_app(testing=False):
         note_dict['user_id'] = the_user.id
 
         the_note = create_note_from_json_dict(note_dict)
-        
-        copied_note = copy.deepcopy(the_note)
 
-        
-
-        # the problem is here !! this adding of the note makes it have differently ordered labels SOMETIMES.. looks like random order
+        # the problem is here !! this adding of the note makes it have
+        # differently ordered labels SOMETIMES.. looks like random order
         db.session.add(the_note)
         db.session.commit()
         
-        copied_note.id = the_note.id
-
-
-        inserted_note_dict = copied_note.to_json_dict()
-    
+        # solved it by making to_json_dict() have the label dicts ordered alphab
+        inserted_note_dict = the_note.to_json_dict()
         resp_dict = {'created_note': inserted_note_dict}
 
         return make_json_response(resp_dict, 201)
@@ -227,8 +221,9 @@ def create_app(testing=False):
 
 
 
-    # FIXME: this is for debugging purposes.. remove later
-    
+
+
+    # FIXME: this is for debugging purposes.. remove later 
     @app.route('/api/users', methods=['GET'])
     def users():
         all_users = User.query.all()

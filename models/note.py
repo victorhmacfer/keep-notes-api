@@ -93,5 +93,3 @@ class Label(db.Model):
 
     def to_dict(self):
         return {'text': self.text}
-
-

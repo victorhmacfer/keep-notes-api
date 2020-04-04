@@ -40,7 +40,11 @@ class Note(db.Model):
         image_dicts_list = [i.to_dict() for i in self.images]
         the_dict['images'] = image_dicts_list
 
+        # SORTS THE LABEL DICTS BY THE TEXT STRING SO IT ALWAYS PRODUCES
+        # THE SAME LIST FOR OUTPUT TO THE CLIENT.
         label_dicts_list = [lab.to_dict() for lab in self.labels]
+        label_dicts_list.sort(key=lambda d: d['text'])
+        
         the_dict['labels'] = label_dicts_list
 
         return the_dict
@@ -89,6 +93,5 @@ class Label(db.Model):
 
     def to_dict(self):
         return {'text': self.text}
-
 
 

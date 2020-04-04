@@ -51,6 +51,7 @@ def client_with_regd_user(app):
     delete_test_db()
 
 
+
 @pytest.fixture
 def client_that_user_created_two_notes(app):
     the_client = app.test_client()
@@ -72,6 +73,24 @@ def client_that_user_created_two_notes(app):
     "labels": []\n}'''
     r = the_client.post('/api/u/johndoe/notes', json=FIRST_NOTE_JSON_STR)
     assert 201 == r.status_code
+    eb = b'''{
+    "created_note": {
+        "id": "1",
+        "title": "my first note",
+        "text": "first note text",
+        "pinned": "false",
+        "archived": "true",
+        "user_id": "1",
+        "color_name": "purple",
+        "images": [
+            {
+                "url": "www.firstNoteImage.com"
+            }
+        ],
+        "labels": []
+    }\n}'''
+    assert eb in r.data
+
 
     SECOND_NOTE_JSON_STR = '''{
     "title": "my SECOND note",
@@ -97,6 +116,36 @@ def client_that_user_created_two_notes(app):
     ]\n}'''
     r = the_client.post('/api/u/johndoe/notes', json=SECOND_NOTE_JSON_STR)
     assert 201 == r.status_code
+
+    eb = b'''{
+    "created_note": {
+        "id": "2",
+        "title": "my SECOND note",
+        "text": "second note text",
+        "pinned": "true",
+        "archived": "false",
+        "user_id": "1",
+        "color_name": "green",
+        "images": [
+            {
+                "url": "www.blabla.com"
+            },
+            {
+                "url": "www.google.com"
+            }
+        ],
+        "labels": [
+            {
+                "text": "anotherLabel"
+            },
+            {
+                "text": "my-label"
+            }
+        ]
+    }\n}'''
+    
+    assert eb in r.data
+
 
     yield the_client
     delete_test_db()
@@ -191,10 +240,10 @@ def test_get_all_user_notes(client_that_user_created_two_notes):
             ],
             "labels": [
                 {
-                    "text": "my-label"
+                    "text": "anotherLabel"
                 },
                 {
-                    "text": "anotherLabel"
+                    "text": "my-label"
                 }
             ]
         }
@@ -205,6 +254,7 @@ def test_get_all_user_notes(client_that_user_created_two_notes):
 
 
 
+@pytest.mark.skip(reason='success case already tested in fixture')
 def test_create_note_for_user(client_with_regd_user):
     NOTE_JSON_STR = '''{
     "title": "my first note",
@@ -217,7 +267,14 @@ def test_create_note_for_user(client_with_regd_user):
             "url": "www.blabla.com"
         }
     ],
-    "labels": []\n}'''
+    "labels": [
+        {
+            "text": "my-label"
+        },
+        {
+            "text": "anotherLabel"
+        }
+    ]\n}'''
 
     r = client_with_regd_user.post('/api/u/johndoe/notes', json=NOTE_JSON_STR)
     assert 201 == r.status_code

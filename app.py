@@ -6,6 +6,8 @@ from flask_jwt_extended import JWTManager, jwt_required
 
 from utils.json import make_json_response
 
+import copy
+
 
 db = SQLAlchemy()
 
@@ -192,7 +194,6 @@ def create_app(testing=False):
         if isinstance(note_dict, str):
             note_dict = JSONDecoder().decode(note_dict)
 
-        # FIXME: decent JSON resp
         if _is_invalid_note_dict(note_dict):
             rd = {
                 'error': 'Note creation has failed.', 
@@ -203,19 +204,23 @@ def create_app(testing=False):
         note_dict['user_id'] = the_user.id
 
         the_note = create_note_from_json_dict(note_dict)
+        
+        copied_note = copy.deepcopy(the_note)
 
+        
+
+        # the problem is here !! this adding of the note makes it have differently ordered labels SOMETIMES.. looks like random order
         db.session.add(the_note)
         db.session.commit()
+        
+        copied_note.id = the_note.id
 
-        inserted_note_dict = the_note.to_json_dict()
+
+        inserted_note_dict = copied_note.to_json_dict()
+    
         resp_dict = {'created_note': inserted_note_dict}
 
         return make_json_response(resp_dict, 201)
-
-
-    
-
- 
 
 
 

@@ -343,6 +343,141 @@ def test_create_note_with_bad_json_in_request(client_with_regd_user):
 
 
 
+def test_update_note(client_that_user_created_two_notes):
+    FIRST_UPDATE_JSON = '''{
+    "title": "first note IS UPDATED",
+    "text": "tiny text",
+    "pinned": "false",
+    "archived": "true",
+    "user_id": "1",
+    "color_name": "purple",
+    "images": [],
+    "labels": [
+        {
+            "text": "first-note-label"
+        }
+    ]\n}'''
+
+    r = client_that_user_created_two_notes.put(
+        '/api/u/johndoe/notes/1',
+        json=FIRST_UPDATE_JSON
+    )
+    assert 200 == r.status_code
+    eb = b'''{
+    "updated_note": {
+        "id": "1",
+        "title": "first note IS UPDATED",
+        "text": "tiny text",
+        "pinned": "false",
+        "archived": "true",
+        "user_id": "1",
+        "color_name": "purple",
+        "images": [],
+        "labels": [
+            {
+                "text": "first-note-label"
+            }
+        ]
+    }\n}'''
+    assert eb in r.data
+
+
+    SECOND_UPDATE_JSON = '''{
+    "title": "second note UPDATED",
+    "text": "second note tiny text",
+    "pinned": "true",
+    "archived": "false",
+    "user_id": "1",
+    "color_name": "red",
+    "images": [
+        {
+            "url": "www.abc123.com"
+        }
+    ],
+    "labels": []\n}'''
+
+    r = client_that_user_created_two_notes.put(
+        '/api/u/johndoe/notes/2',
+        json=SECOND_UPDATE_JSON
+    )
+    assert 200 == r.status_code
+    eb = b'''{
+    "updated_note": {
+        "id": "2",
+        "title": "second note UPDATED",
+        "text": "second note tiny text",
+        "pinned": "true",
+        "archived": "false",
+        "user_id": "1",
+        "color_name": "red",
+        "images": [
+            {
+                "url": "www.abc123.com"
+            }
+        ],
+        "labels": []
+    }\n}'''
+    assert eb in r.data
+
+
+
+def test_update_note_for_nonexistent_user(client_that_user_created_two_notes):
+    r = client_that_user_created_two_notes.put(
+        'api/u/notregduser/notes/37',
+        json='whatever'
+    )
+    assert 404 == r.status_code
+    expected_body = b'''{
+    "error": "Note update has failed.",
+    "description": "User with username 'notregduser' could not be found."\n}'''
+    assert expected_body in r.data
+
+
+
+def test_update_note_with_bad_json_in_req(client_that_user_created_two_notes):
+    # missing key title
+    MISSING_KEY_NOTE_JSON = '''{
+    "text": "second note tiny text",
+    "pinned": "true",
+    "archived": "false",
+    "user_id": "1",
+    "color_name": "red",
+    "images": [
+        {
+            "url": "www.abc123.com"
+        }
+    ],
+    "labels": []\n}'''
+
+    r = client_that_user_created_two_notes.put(
+        'api/u/johndoe/notes/2',
+        json=MISSING_KEY_NOTE_JSON
+    )
+    assert 400 == r.status_code
+    eb = b'''{
+    "error": "Note update has failed.",
+    "description": "Some of the keys are missing and/or an invalid key was sent. Required keys: 'title', 'text', 'pinned', 'archived', 'user_id', 'color_name', 'images', 'labels'."\n}'''
+    assert eb in r.data
+
+    INVALID_KEY_NOTE_JSON = '''{
+    "INVALID_KEY": "blabla",
+    "title": "whatever"
+    "text": "second note tiny text",
+    "pinned": "true",
+    "archived": "false",
+    "user_id": "1",
+    "color_name": "red",
+    "images": [
+        {
+            "url": "www.abc123.com"
+        }
+    ],
+    "labels": []\n}'''
+    assert 400 == r.status_code
+    assert eb in r.data
+
+
+
 
 # def test_update_note(client_with_logged_in_user):
 #     # note json with existing id.. change title and text

@@ -22,7 +22,7 @@ class Note(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     color_name = db.Column(db.Integer, db.ForeignKey('color.name'), nullable=False)
 
-    images = db.relationship('Image', backref='note')
+    images = db.relationship('Image', backref='note', cascade='all, delete-orphan')
     labels = db.relationship('Label', secondary=labels, lazy='subquery',
         backref='notes')
 

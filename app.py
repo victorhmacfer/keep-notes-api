@@ -45,9 +45,19 @@ def create_app(testing=False):
 
 
     # FIXME: tightly coupled to Note !!!  hardcoded stuff
-    def _is_invalid_note_dict(note_dict):
+    def _is_invalid_note_creation_dict(note_dict):
         if (len(note_dict.keys()) != 7) or (set(note_dict.keys()) != {
             'title', 'text', 'pinned','archived', 
+            'color_name', 'images', 'labels'}):
+
+            return True
+        return False
+
+
+    # FIXME: tightly coupled to Note !!!  hardcoded stuff
+    def _is_invalid_note_update_dict(note_dict):
+        if (len(note_dict.keys()) != 8) or (set(note_dict.keys()) != {
+            'title', 'text', 'pinned','archived', 'user_id',
             'color_name', 'images', 'labels'}):
 
             return True
@@ -178,7 +188,6 @@ def create_app(testing=False):
         return make_json_response(resp_dict, 200)
 
 
-
     @app.route('/api/u/<username>/notes', methods=['POST'])
     def create_note_for_user(username):
         the_user = User.find_by_username(username)
@@ -194,7 +203,7 @@ def create_app(testing=False):
         if isinstance(note_dict, str):
             note_dict = JSONDecoder().decode(note_dict)
 
-        if _is_invalid_note_dict(note_dict):
+        if _is_invalid_note_creation_dict(note_dict):
             rd = {
                 'error': 'Note creation has failed.', 
                 'description': "Some of the keys are missing and/or an invalid key was sent. Required keys: 'title', 'text', 'pinned', 'archived', 'color_name', 'images', 'labels'."
@@ -216,9 +225,56 @@ def create_app(testing=False):
 
         return make_json_response(resp_dict, 201)
 
+    
+        
+    @app.route('/api/u/<username>/notes/<nid>', methods=['PUT'])
+    def update_note(username, nid):
+        the_user = User.find_by_username(username)
+        int_nid = int(nid)
 
+        if the_user is None:
+            rd = {
+                'error': 'Note update has failed.', 
+                'description': f"User with username '{username}' could not be found."
+            }
+            return make_json_response(rd, 404)
 
+        note_dict = request.json
+        if isinstance(note_dict, str):
+            note_dict = JSONDecoder().decode(note_dict)
 
+        if _is_invalid_note_update_dict(note_dict):
+            rd = {
+                'error': 'Note update has failed.', 
+                'description': "Some of the keys are missing and/or an invalid key was sent. Required keys: 'title', 'text', 'pinned', 'archived', 'user_id', 'color_name', 'images', 'labels'."
+            }
+            return make_json_response(rd, 400)
+
+        new_note = create_note_from_json_dict(note_dict)
+
+        previous_note = Note.query.filter_by(id=int_nid).first()
+
+        if previous_note is not None:
+            previous_note.title = new_note.title
+            previous_note.text = new_note.text
+            previous_note.pinned = new_note.pinned
+            previous_note.archived = new_note.archived
+            previous_note.user_id = new_note.user_id
+            previous_note.color_name = new_note.color_name
+            previous_note.images = new_note.images
+            previous_note.labels = new_note.labels
+            db.session.add(previous_note)
+            db.session.commit()
+            updated_note_dict = previous_note.to_json_dict()
+        else:
+            new_note.id = int_nid
+            db.session.add(new_note)
+            db.session.commit()
+            updated_note_dict = new_note.to_json_dict()
+
+        resp_dict = {'updated_note': updated_note_dict}
+
+        return make_json_response(resp_dict, 200)
 
 
 

@@ -64,106 +64,6 @@ def create_app(testing=False):
         return False
 
 
-    # def _patch_dict(json_dict):
-    #     pd = {}
-
-    #     if 'id' not in json_dict.keys():
-    #         raise KeyError
-    #     the_id = int(json_dict['id'])
-    #     pd['id'] = the_id
-
-    #     if 'title' in json_dict.keys():
-    #         pd['title'] = json_dict['title']
-    #     if 'text' in json_dict.keys():
-    #         pd['text'] = json_dict['text']
-
-    #     if 'pinned' in json_dict.keys():
-    #         if json_dict['pinned'] not in ['true', 'false']:
-    #             raise ValueError
-    #         pd['pinned'] = True if json_dict['pinned'] == 'true' else False
-
-    #     if 'archived' in json_dict.keys():
-    #         if json_dict['archived'] not in ['true', 'false']:
-    #             raise ValueError
-    #         pd['archived'] = True if json_dict['archived'] == 'true' else False
-
-    #     if 'color_name' in json_dict.keys():
-    #         pd['color_name'] = json_dict['color_name']
-
-    #     if 'images' in json_dict.keys():
-    #         note_images = []
-    #         for i in json_dict['images']:
-    #             img = Image(url=i['url'], note_id=the_id)
-    #             note_images.append(img)
-    #         pd['images'] = note_images
-
-    #     if 'labels' in json_dict.keys():
-    #         note_labels = []
-    #         for label_text in json_dict['labels']:
-    #             label_in_db = Label.find_by_text(label_text)
-    #             if label_in_db is not None:
-    #                 the_label = label_in_db
-    #             else:
-    #                 the_label = Label(text=label_text)
-    #             note_labels.append(the_label)
-    #         pd['labels'] = note_labels
-
-    #     return pd
-
-
-
-
-    # @app.route('/api/notes', methods=['PATCH'])
-    # def update_note():
-
-    #     json_dict = request.json
-    #     if isinstance(json_dict, str):
-    #         json_dict = JSONDecoder().decode(json_dict)
-
-    #     print(json_dict)
-    #     print(type(json_dict))
-
-    #     if not is_valid_note_json_dict(json_dict):
-    #         return 'Malformed JSON string for updating note.', 400
-
-    #     note_id = int(json_dict['id'])
-    #     note_in_db = Note.query.filter_by(id=note_id).first()
-
-    #     if note_in_db is None:
-    #         return 'Note not found in database.', 400
-
-    #     try:
-    #         patch_dict = _patch_dict(json_dict)
-    #     except (KeyError, ValueError):
-    #         return 'Malformed JSON string for updating note.', 400
-
-    #     for k in patch_dict.keys():
-    #         setattr(note_in_db, k, patch_dict[k])
-
-    #     db.session.commit()
-
-    #     updated_note_dict = note_in_db.to_json_dict()
-    #     json_response = 'note:' + \
-    #         JSONEncoder(separators=(',', ':')).encode(updated_note_dict)
-
-    #     return json_response, 200
-
-
-
-    # def is_valid_note_json_dict(note_dict):
-    #     # does not accept user_id since it should not be updated.
-    #     accepted_keys = ['id', 'title', 'text', 'pinned', 'archived',
-    #                      'color_name', 'images', 'labels']
-    #     if 'id' not in note_dict.keys():
-    #         return False
-
-    #     for k in note_dict.keys():
-    #         if k not in accepted_keys:
-    #             return False
-
-    #     return True
-
-    
 
     # def unauthorized_loader_callback(s):
     #     rd = {'error': 'Access Denied.', 
@@ -273,6 +173,35 @@ def create_app(testing=False):
             updated_note_dict = new_note.to_json_dict()
 
         resp_dict = {'updated_note': updated_note_dict}
+
+        return make_json_response(resp_dict, 200)
+
+
+
+    @app.route('/api/u/<username>/notes/<nid>', methods=['DELETE'])
+    def delete_note(username, nid):
+        the_user = User.find_by_username(username)
+        if the_user is None:
+            rd = {
+                'error': 'Note deletion has failed.', 
+                'description': f"User with username '{username}' could not be found."
+            }
+            return make_json_response(rd, 400)
+    
+        int_nid = int(nid)
+        the_note = Note.query.filter_by(id=int_nid).first()
+        if the_note is None:
+            rd = {
+                'error': 'Note deletion has failed.', 
+                'description': f"Note with id '{int_nid}' could not be found."
+            }
+            return make_json_response(rd, 404)
+
+        db.session.delete(the_note)
+        db.session.commit()
+
+        deleted_note_dict = the_note.to_json_dict()
+        resp_dict = {'deleted_note': deleted_note_dict}
 
         return make_json_response(resp_dict, 200)
 

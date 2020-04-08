@@ -478,28 +478,77 @@ def test_update_note_with_bad_json_in_req(client_that_user_created_two_notes):
 
 
 
+def test_delete_note(client_that_user_created_two_notes):
+    r = client_that_user_created_two_notes.delete('api/u/johndoe/notes/2')
 
-# def test_update_note(client_with_logged_in_user):
-#     # note json with existing id.. change title and text
-#     note_json_string = '''{"user_id":"1","title":"initial title","text":"first version","pinned":"false","archived":"false","color_name":"white","images":[{"url":"www.abc123.com"},{"url":"www.blabla.com"}],"labels":["my-label"]}'''
-#     response = client_with_logged_in_user.post(
-#         'api/notes',
-#         json=note_json_string
-#     )
-#     assert 201 == response.status_code
-#     assert b'''note:{"id":"1","title":"initial title","text":"first version","pinned":"false","archived":"false","user_id":"1","color_name":"white","images":[{"url":"www.abc123.com"},{"url":"www.blabla.com"}],"labels":["my-label"]}''' in response.data
+    assert 200 == r.status_code
+    EXPECTED_BODY = b'''{
+    "deleted_note": {
+        "id": "2",
+        "title": "my SECOND note",
+        "text": "second note text",
+        "pinned": "true",
+        "archived": "false",
+        "user_id": "1",
+        "color_name": "green",
+        "images": [
+            {
+                "url": "www.blabla.com"
+            },
+            {
+                "url": "www.google.com"
+            }
+        ],
+        "labels": [
+            {
+                "text": "anotherLabel"
+            },
+            {
+                "text": "my-label"
+            }
+        ]
+    }\n}'''
+    assert EXPECTED_BODY in r.data
 
-#     note_json_string = '''{"id":"1","title":"MODIFIED","text":"SECOND version"}'''
-#     response = client_with_logged_in_user.patch(
-#         'api/notes',
-#         json=note_json_string
-#     )
-#     assert 200 == response.status_code
-#     assert b'''note:{"id":"1","title":"MODIFIED","text":"SECOND version","pinned":"false","archived":"false","user_id":"1","color_name":"white","images":[{"url":"www.abc123.com"},{"url":"www.blabla.com"}],"labels":["my-label"]}''' in response.data
+    r = client_that_user_created_two_notes.get('api/u/johndoe/notes')
+    assert 200 == r.status_code
+    eb = b'''{
+    "username": "johndoe",
+    "notes": [
+        {
+            "id": "1",
+            "title": "my first note",
+            "text": "first note text",
+            "pinned": "false",
+            "archived": "true",
+            "user_id": "1",
+            "color_name": "purple",
+            "images": [
+                {
+                    "url": "www.firstNoteImage.com"
+                }
+            ],
+            "labels": []
+        }
+    ]\n}'''
+    assert eb in r.data
 
 
-#     # note json with existing id.. remove one of the images
+def test_delete_note_for_nonexistent_user(client_that_user_created_two_notes):
+    r = client_that_user_created_two_notes.delete('api/u/notregd/notes/1')
+    assert 400 == r.status_code
+    expected_body = b'''{
+    "error": "Note deletion has failed.",
+    "description": "User with username 'notregd' could not be found."\n}'''
+    assert expected_body in r.data
 
-#     # note json with existing id.. include another label
 
-#     # note json with NON EXISTING id.. return "note id not found"  400
+
+def test_delete_nonexistent_note(client_that_user_created_two_notes):
+    r = client_that_user_created_two_notes.delete('api/u/johndoe/notes/47')
+    assert 404 == r.status_code
+    expected_body = b'''{
+    "error": "Note deletion has failed.",
+    "description": "Note with id '47' could not be found."\n}'''
+    assert expected_body in r.data
+

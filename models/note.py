@@ -42,7 +42,7 @@ class Note(db.Model):
 
         # SORTS THE LABEL DICTS BY THE TEXT STRING SO IT ALWAYS PRODUCES
         # THE SAME LIST FOR OUTPUT TO THE CLIENT.
-        label_dicts_list = [lab.to_dict() for lab in self.labels]
+        label_dicts_list = [lab.to_json_dict() for lab in self.labels]
         label_dicts_list.sort(key=lambda d: d['text'])
         
         the_dict['labels'] = label_dicts_list
@@ -91,5 +91,12 @@ class Label(db.Model):
     def find_by_text(cls, txt):
         return cls.query.filter_by(text=txt).first()
 
-    def to_dict(self):
+    def to_json_dict(self):
         return {'text': self.text}
+
+    @classmethod
+    def from_json_dict(cls, jd):
+        if len(jd['text']) > 30:
+            raise ValueError
+
+        return cls(text=jd['text'])

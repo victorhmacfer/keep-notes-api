@@ -206,6 +206,51 @@ def create_app(testing=False):
         return make_json_response(resp_dict, 200)
 
 
+    @app.route('/api/u/<username>/labels', methods=['POST'])
+    def create_label(username):
+        the_user = User.find_by_username(username)
+
+        if the_user is None:
+            rd = {
+                'error': 'Label creation has failed.', 
+                'description': f"User with username '{username}' could not be found."
+            }
+            return make_json_response(rd, 400)
+
+        label_dict = request.json
+        if isinstance(label_dict, str):
+            label_dict = JSONDecoder().decode(label_dict)
+
+
+        if 'text' not in label_dict.keys():
+            rd = {
+                'error': 'Label creation has failed.', 
+                'description': "Malformed JSON in request. Required keys: 'text'."
+            }
+            return make_json_response(rd, 400)
+
+        try:
+            the_label = Label.from_json_dict(label_dict)
+        except ValueError:
+            rd = {
+                'error': 'Label creation has failed.', 
+                'description': "Value for 'text' key longer than 30 characters."
+            }
+            return make_json_response(rd, 400)
+        
+        db.session.add(the_label)
+        db.session.commit()
+
+        inserted_label_dict = the_label.to_json_dict()
+        resp_dict = {'created_label': inserted_label_dict}
+
+        return make_json_response(resp_dict, 201)
+        
+
+        
+
+
+
 
 
     # FIXME: this is for debugging purposes.. remove later 

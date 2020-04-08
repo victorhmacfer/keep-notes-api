@@ -226,50 +226,6 @@ def test_get_all_user_notes(client_that_user_created_two_notes):
 
 
 
-@pytest.mark.skip(reason='success case already tested in fixture')
-def test_create_note_for_user(client_with_regd_user):
-    NOTE_JSON_STR = '''{
-    "title": "my first note",
-    "text": "this is a huge text oaisd joiasjd oiasoidjasoidoaisoi as",
-    "pinned": "false",
-    "archived": "true",
-    "color_name": "purple",
-    "images": [
-        {
-            "url": "www.blabla.com"
-        }
-    ],
-    "labels": [
-        {
-            "text": "my-label"
-        },
-        {
-            "text": "anotherLabel"
-        }
-    ]\n}'''
-
-    r = client_with_regd_user.post('/api/u/johndoe/notes', json=NOTE_JSON_STR)
-    assert 201 == r.status_code
-    EXPECTED_BODY = b'''{
-    "created_note": {
-        "id": "1",
-        "title": "my first note",
-        "text": "this is a huge text oaisd joiasjd oiasoidjasoidoaisoi as",
-        "pinned": "false",
-        "archived": "true",
-        "user_id": "1",
-        "color_name": "purple",
-        "images": [
-            {
-                "url": "www.blabla.com"
-            }
-        ],
-        "labels": []
-    }\n}'''
-    assert EXPECTED_BODY in r.data
-
-
-
 def test_create_note_for_nonexistent_user(client_with_regd_user):
     NOTE_JSON_STR = '''{
     "title": "my first note",

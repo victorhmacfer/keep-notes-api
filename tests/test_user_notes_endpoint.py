@@ -241,7 +241,7 @@ def test_create_note_for_nonexistent_user(client_with_regd_user):
     "labels": []\n}'''
 
     r = client_with_regd_user.post('/api/u/notregd/notes', json=NOTE_JSON_STR)
-    assert 404 == r.status_code
+    assert 400 == r.status_code
 
     EXPECTED_BODY = b'''{
     "error": "Note creation has failed.",
@@ -382,7 +382,7 @@ def test_update_note_for_nonexistent_user(client_that_user_created_two_notes):
         'api/u/notregduser/notes/37',
         json='whatever'
     )
-    assert 404 == r.status_code
+    assert 400 == r.status_code
     expected_body = b'''{
     "error": "Note update has failed.",
     "description": "User with username 'notregduser' could not be found."\n}'''

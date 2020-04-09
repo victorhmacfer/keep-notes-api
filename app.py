@@ -97,7 +97,7 @@ def create_app(testing=False):
                 'error': 'Note creation has failed.', 
                 'description': f"User with username '{username}' could not be found."
             }
-            return make_json_response(rd, 404)
+            return make_json_response(rd, 400)
 
         note_dict = request.json
         if isinstance(note_dict, str):
@@ -137,7 +137,7 @@ def create_app(testing=False):
                 'error': 'Note update has failed.', 
                 'description': f"User with username '{username}' could not be found."
             }
-            return make_json_response(rd, 404)
+            return make_json_response(rd, 400)
 
         note_dict = request.json
         if isinstance(note_dict, str):

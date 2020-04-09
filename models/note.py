@@ -77,7 +77,7 @@ def create_note_from_json_dict(json_dict):
         if label_in_db is not None:
             the_label = label_in_db
         else:
-            the_label = Label(text=label_text)
+            the_label = Label(text=label_text, user_id=user_id)
         the_note.labels.append(the_label)
 
     return the_note
@@ -86,10 +86,15 @@ def create_note_from_json_dict(json_dict):
 
 class Label(db.Model):
     text = db.Column(db.String(30), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     @classmethod
     def find_by_text(cls, txt):
         return cls.query.filter_by(text=txt).first()
+
+    @classmethod
+    def find_by_user_id(cls, uid):
+        return cls.query.filter_by(user_id=uid).all()
 
     def to_json_dict(self):
         return {'text': self.text}

@@ -117,3 +117,33 @@ def test_create_label_with_bad_json_in_request(client_with_regd_user):
     "description": "Value for 'text' key longer than 30 characters."\n}'''
     assert EXPECTED_BODY in r.data
 
+
+
+def test_get_all_user_labels(client_that_user_created_two_labels):
+    r = client_that_user_created_two_labels.get('/api/u/johndoe/labels')
+
+    EXPECTED_BODY = b'''{
+    "username": "johndoe",
+    "labels": [
+        {
+            "text": "my-first-label"
+        },
+        {
+            "text": "mySecondLabel"
+        }
+    ]\n}'''
+    assert 200 == r.status_code
+    assert EXPECTED_BODY in r.data
+
+
+
+def test_get_labels_for_nonexistent_user(client_with_regd_user):
+    r = client_with_regd_user.get('/api/u/notregd/labels')
+    eb = b'''{
+    "error": "Retrieval of user labels has failed.",
+    "description": "User with username 'notregd' could not be found."\n}'''
+    assert 400 == r.status_code
+    assert eb in r.data
+
+
+

@@ -238,6 +238,7 @@ def create_app(testing=False):
             }
             return make_json_response(rd, 400)
         
+        the_label.user_id = the_user.id
         db.session.add(the_label)
         db.session.commit()
 
@@ -245,9 +246,29 @@ def create_app(testing=False):
         resp_dict = {'created_label': inserted_label_dict}
 
         return make_json_response(resp_dict, 201)
+
+
+    @app.route('/api/u/<username>/labels', methods=['GET'])
+    def get_all_user_labels(username):
+        the_user = User.find_by_username(username)
         
 
+        if the_user is None:
+            rd = {
+                'error': 'Retrieval of user labels has failed.',
+                'description': f"User with username '{username}' could not be found."
+            }
+            return make_json_response(rd, 400)
         
+        uid = the_user.id
+        user_labels = Label.find_by_user_id(uid)
+
+        sorted_labels = sorted(user_labels, key=lambda label: label.text)
+        json_dicts = [lab.to_json_dict() for lab in sorted_labels]
+
+        resp_dict = {'username': username, 'labels': json_dicts}
+
+        return make_json_response(resp_dict, 200)
 
 
 
